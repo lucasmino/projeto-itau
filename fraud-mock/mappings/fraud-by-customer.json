@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/fraud/check",
+    "queryParameters": {
+      "orderId": { "matches": ".*" },
+      "customerId": { "matches": ".*" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "fraud-customer-7c2a27ba.json"
+  }
+}

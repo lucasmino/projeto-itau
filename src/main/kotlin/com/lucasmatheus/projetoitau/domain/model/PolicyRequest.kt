@@ -27,6 +27,9 @@ data class HistoryEntry(
 )
 
 enum class Status { RECEIVED, VALIDATED, PENDING, APPROVED, REJECTED, CANCELED }
+
+fun Status.isFinal(): Boolean = this == Status.APPROVED || this == Status.REJECTED
+
 enum class Category { AUTO, VIDA, RESIDENCIAL, EMPRESARIAL, OUTROS }
 enum class PaymentMethod { CREDIT_CARD, DEBIT, BOLETO, PIX }
 enum class SalesChannel {

@@ -10,7 +10,10 @@ import org.springframework.stereotype.Repository
 class PersistenceAdapter(private val jpa: PolicyJpaRepository) : PolicyRequestRepository {
 
     override fun save(request: PolicyRequest): PolicyRequest {
-        val saved = jpa.save(PersistenceMapper.toEntity(request))
+        val e = PersistenceMapper.toEntity(request)
+        val existingVersion = jpa.findById(request.id).map { it.version }.orElse(null)
+        e.version = existingVersion
+        val saved = jpa.save(e)
         return PersistenceMapper.toDomain(saved)
     }
 

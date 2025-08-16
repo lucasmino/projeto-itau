@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/fraud/check",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$.orderId" },
+      { "matchesJsonPath": "$.customerId" }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "fraud-customer-7c2a27ba.json"
+  }
+}

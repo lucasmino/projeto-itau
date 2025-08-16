@@ -4,10 +4,11 @@ import com.lucasmatheus.projetoitau.domain.ports.out.Classification
 import com.lucasmatheus.projetoitau.domain.ports.out.FraudClient
 import com.lucasmatheus.projetoitau.domain.ports.out.FraudResult
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import java.time.Instant
 import java.util.*
-
+@Component
 class FraudHttpClient(
     private val webClient: WebClient,
     @Value("\${fraud.base-url}") private val baseUrl: String

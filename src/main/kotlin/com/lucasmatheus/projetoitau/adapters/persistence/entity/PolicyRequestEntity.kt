@@ -24,7 +24,6 @@ import java.util.UUID
 @Entity
 @Table(name = "policy_request")
 class PolicyRequestEntity(
-
     @Id
     var id: UUID,
 

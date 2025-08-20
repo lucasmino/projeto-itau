@@ -3,6 +3,14 @@ Projeto criado para processo seletivo vaga de dev pleno
 b9f397ff-5cad-47ad-b136-58545cbc552a
 
 para rodar todos os testes da classe E2EVALIDATIONTest (teste ponta a ponta) é imprescindivel que seja subido a infra de docker
+comandos uteis docker compose up -d : sobe toda a infra
+docker compose down : derruba toda a infra
+sudo docker logs -f projetoitau : os logs da aplicação principal onde podemos ver eventos de messageria sendo publicados e consumidos
+
+sudo docker exec -it db bash
+root@a49906dca1fe:/# env | grep POSTGRES : acessa o container do banco
+psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" : acessa o banco de dados postgres
+
 
 Justificativa de algumas funcionalidades
 optei por validar antifraude de forma assíncrona via eventos logo após a criação da solicitação primeiro porque a aplicação toda 

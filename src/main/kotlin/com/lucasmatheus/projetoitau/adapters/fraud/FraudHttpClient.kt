@@ -2,6 +2,7 @@ package com.lucasmatheus.projetoitau.adapters.fraud
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.lucasmatheus.projetoitau.domain.ports.`in`.ValidateRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.out.Classification
 import com.lucasmatheus.projetoitau.domain.ports.out.FraudClient
 import com.lucasmatheus.projetoitau.domain.ports.out.FraudResult
@@ -18,9 +19,9 @@ open class FraudHttpClient(
     private val webClient: WebClient,
     @Value("\${fraud.base-url}") private val baseUrl: String
 ) : FraudClient {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun check(orderId: UUID, customerId: UUID): FraudResult {
-        // POST /fraud/check com JSON {orderId, customerId}
         val resp = webClient.post()
             .uri("$baseUrl/fraud/check")
             .bodyValue(mapOf("orderId" to orderId, "customerId" to customerId))
@@ -36,8 +37,7 @@ open class FraudHttpClient(
                     productId = it.productId,
                     type = it.type,
                     description = it.description,
-                    createdAt = it.createdAt
-                    , updatedAt = it.updatedAt
+                    createdAt = it.createdAt, updatedAt = it.updatedAt
                 )
             }
         )
@@ -57,14 +57,14 @@ open class FraudHttpClient(
             val type: String,
             val description: String,
             val createdAt: Instant,
-            val updatedAt : Instant
+            val updatedAt: Instant
         )
     }
 }
 
 @Component
 open class PolicyRequestListener(
-    private val fraud: FraudClient
+    private val validateRequest: ValidateRequestUseCase
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val om = jacksonObjectMapper()
@@ -80,11 +80,16 @@ open class PolicyRequestListener(
     open fun handleRequestCreated(message: String) {
         log.info("Mensagem recebida: $message")
         val m: RequestCreatedMessage = om.readValue(message)
+        try {
+        val result = validateRequest.validate(m.requestId)
+        log.info(
+            "ValidateRequestUseCase concluiu: previous=${result.previousStatus} " +
+                    "new=${result.newStatus} changed=${result.changed}"
+        ) }
+        catch (e: Exception) {
+            log.error("Erro ao validar requisição: ${m.requestId}", e)
+            return
+        }
 
-        val result = fraud.check(
-            orderId = m.requestId,
-            customerId = m.customerId
-        )
-        log.info("FraudClient respondeu: $result")
     }
 }

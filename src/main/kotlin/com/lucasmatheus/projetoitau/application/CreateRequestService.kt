@@ -13,7 +13,10 @@ import com.lucasmatheus.projetoitau.domain.ports.out.ClockProvider
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestEventPublisher
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestRepository
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.util.UUID
 
 @Service
@@ -22,6 +25,7 @@ class CreateRequestService(
     private val clock: ClockProvider,
     private val publisher: PolicyRequestEventPublisher
 ): CreateRequestUseCase {
+    private val log = LoggerFactory.getLogger(javaClass)
     @Transactional
     override fun create(cmd: CreateRequestCommand): CreatedRequest {
         val now = clock.now()
@@ -44,11 +48,19 @@ class CreateRequestService(
 
         val savedRequest = repo.save(request)
 
-        publisher.publishCreated(
-            requestId = savedRequest.id,
-            customerId = savedRequest.customerId,
-            createdAt = clock.now()
-        )
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCommit() {
+                publisher.publishCreated(
+                    requestId = savedRequest.id,
+                    customerId = savedRequest.customerId,
+                    createdAt = now
+                )
+            }
+        })
+
+        log.info("A POLICY FOI CRIADA E EU PUBLIQUEI O EVENTO DE CRIAÇÃO")
         return CreatedRequest(savedRequest.id,now)
     }
+
+
 }

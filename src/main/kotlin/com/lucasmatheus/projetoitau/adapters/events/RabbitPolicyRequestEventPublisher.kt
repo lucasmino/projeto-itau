@@ -13,14 +13,23 @@ class RabbitPolicyRequestEventPublisher(
     private val rabbitTemplate: RabbitTemplate,
     private val objectMapper: ObjectMapper,
     @Value("\${app.rabbit.exchange}") private val exchange: String,
-    @Value("\${app.rabbit.routing-key}") private val routingKey: String
-) : PolicyRequestEventPublisher {
+    @Value("\${app.rabbit.routing-key}") private val routingKey: String,
+    @Value("\${app.rabbit.routing-key-policy.request.statusChanged}") private val statusChangedRoutingKey: String,
+    ) : PolicyRequestEventPublisher {
 
     private data class RequestCreatedPayload(
         val event: String = "REQUEST_CREATED",
         val requestId: UUID,
         val customerId: UUID,
         val createdAt: Instant
+    )
+
+    private data class StatusChangedPayload(
+        val event: String = "REQUEST_STATUS_CHANGED",
+        val requestId: UUID,
+        val previousStatus: String,
+        val newStatus: String,
+        val changedAt: Instant
     )
 
     override fun publishCreated(requestId: UUID, customerId: UUID, createdAt: Instant) {
@@ -34,12 +43,19 @@ class RabbitPolicyRequestEventPublisher(
     }
 
     override fun publishStatusChanged(
-        requestId: String,
+        requestId: UUID,
         previousStatus: String,
         newStatus: String,
         changedAt: Instant
     ) {
-        TODO("Not yet implemented")
+        val payload = StatusChangedPayload(
+            requestId = requestId,
+            previousStatus = previousStatus,
+            newStatus = newStatus,
+            changedAt = changedAt
+        )
+        val json = objectMapper.writeValueAsString(payload)
+        rabbitTemplate.convertAndSend(exchange, statusChangedRoutingKey, json)
     }
 
 

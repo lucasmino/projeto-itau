@@ -17,7 +17,8 @@ class ValidateRequestServiceTest {
     private val repo = mock<PolicyRequestRepository>()
     private val fraud = mock<FraudClient>()
     private val clock = mock<ClockProvider>()
-    private val svc = ValidateRequestService(clock, fraud,repo )
+    private val publisher = mock<PolicyRequestEventPublisher>()
+    private val svc = ValidateRequestService(clock, fraud,repo, publisher )
 
     @Test
     fun `HIGH_RISK - rejects and finishes`() {

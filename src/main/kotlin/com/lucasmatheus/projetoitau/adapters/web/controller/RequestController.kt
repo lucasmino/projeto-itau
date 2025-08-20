@@ -8,7 +8,6 @@ import com.lucasmatheus.projetoitau.adapters.web.mapper.toCommand
 import com.lucasmatheus.projetoitau.adapters.web.mapper.toResponse
 import com.lucasmatheus.projetoitau.adapters.web.mapper.toSummary
 import com.lucasmatheus.projetoitau.application.ValidateRequestService
-import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestCommand
 import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.`in`.GetRequestQuery
 import jakarta.validation.Valid

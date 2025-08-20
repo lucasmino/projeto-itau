@@ -14,3 +14,5 @@ ENV TZ=America/Sao_Paulo
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/opt/app/app.jar"]
+
+

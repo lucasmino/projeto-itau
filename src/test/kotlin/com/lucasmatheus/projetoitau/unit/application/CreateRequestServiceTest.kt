@@ -8,6 +8,7 @@ import com.lucasmatheus.projetoitau.domain.model.SalesChannel
 import com.lucasmatheus.projetoitau.domain.model.Status
 import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestCommand
 import com.lucasmatheus.projetoitau.domain.ports.out.ClockProvider
+import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestEventPublisher
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestRepository
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +27,8 @@ class CreateRequestServiceTest {
 
     private val repo = mock<PolicyRequestRepository>()
     private val clock = mock<ClockProvider>()
-    private val svc = CreateRequestService( repo, clock)
+    private val publisher = mock<PolicyRequestEventPublisher>()
+    private val svc = CreateRequestService( repo, clock,publisher)
 
     @Test
     @DisplayName("create() deve persistir RECEIVED e retornar id/createdAt")

@@ -5,6 +5,8 @@ services:
     image: postgres:16
     container_name: db
     environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -17,22 +19,6 @@ services:
       retries: 10
     volumes:
       - db_data:/var/lib/postgresql/data
-    networks: [itau]
-
-  rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # UI de gerenciamento
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
     networks: [itau]
 
   fraud-mock:
@@ -51,6 +37,19 @@ services:
       timeout: 5s
       retries: 10
     networks: [itau]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # protocolo AMQP (conexão da app)
+      - "15672:15672" # painel web do RabbitMQ
+    networks: [itau]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   app:
     build:
@@ -73,8 +72,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: ${RABBIT_USER}
-      SPRING_RABBITMQ_PASSWORD: ${RABBIT_PASSWORD}
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      REQUESTS_QUEUE: policy-requests
       FRAUD_BASE_URL: http://fraud-mock:8080
     networks: [itau]
     restart: on-failure

@@ -10,6 +10,7 @@ import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestCommand
 import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.`in`.CreatedRequest
 import com.lucasmatheus.projetoitau.domain.ports.out.ClockProvider
+import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestEventPublisher
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -18,7 +19,8 @@ import java.util.UUID
 @Service
 class CreateRequestService(
     private val repo: PolicyRequestRepository,
-    private val clock: ClockProvider
+    private val clock: ClockProvider,
+    private val publisher: PolicyRequestEventPublisher
 ): CreateRequestUseCase {
     @Transactional
     override fun create(cmd: CreateRequestCommand): CreatedRequest {
@@ -41,6 +43,12 @@ class CreateRequestService(
         )
 
         val savedRequest = repo.save(request)
+
+        publisher.publishCreated(
+            requestId = savedRequest.id,
+            customerId = savedRequest.customerId,
+            createdAt = clock.now()
+        )
         return CreatedRequest(savedRequest.id,now)
     }
 }

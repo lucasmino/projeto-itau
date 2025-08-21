@@ -4,7 +4,9 @@ Arquitetura utilizada:
 Optei por hexagonal por ser uma com qual eu nunca havia usado criando desde o zero, achei interessante utiliza-la por conta de uma premissa importante da aplicação ser testavel e o uso de ports and adapters facilita o desacoplamento a nivel de testes (sem depender excessivamente de tecnologia e sim abstrações)
 apesar de não ter conseguido ajustar os testes e escrever para todos os cenarios senti um feedback interessante ao não precisar mockar recursos de libs em testes unitarios que devem ser simples, isso é bom
 e dessa maneira considero que a aplicação seria facilmente escalavel a nivel de adaptar novos recursos, sentir que o dominio ficou intocado foi um feeling interessante também.
-Deixei uma collection com chamadas validas em apiitau.postman_collection.json
+
+ collection com chamadas validas em apiitau.postman_collection.json
+swagger: http://localhost:8080/swagger-ui/index.html
 
 
 comandos uteis docker compose up -d : sobe toda a infra

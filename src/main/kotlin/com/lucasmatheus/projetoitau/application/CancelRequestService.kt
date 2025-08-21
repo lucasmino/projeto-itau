@@ -6,8 +6,10 @@ import com.lucasmatheus.projetoitau.domain.ports.`in`.CancelRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.out.ClockProvider
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestEventPublisher
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestRepository
+import org.springframework.stereotype.Service
 import java.util.*
 
+@Service
 class CancelRequestService(
     private val policyRequestRepository: PolicyRequestRepository,
     private val eventPublisher: PolicyRequestEventPublisher,

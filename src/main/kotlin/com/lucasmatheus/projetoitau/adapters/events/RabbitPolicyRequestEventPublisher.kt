@@ -2,6 +2,7 @@ package com.lucasmatheus.projetoitau.adapters.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lucasmatheus.projetoitau.domain.ports.out.PolicyRequestEventPublisher
+import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -16,6 +17,8 @@ class RabbitPolicyRequestEventPublisher(
     @Value("\${app.rabbit.routing-key}") private val routingKey: String,
     @Value("\${app.rabbit.routing-key-policy.request.statusChanged}") private val statusChangedRoutingKey: String,
     ) : PolicyRequestEventPublisher {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private data class RequestCreatedPayload(
         val event: String = "REQUEST_CREATED",
@@ -54,6 +57,7 @@ class RabbitPolicyRequestEventPublisher(
             newStatus = newStatus,
             changedAt = changedAt
         )
+        log.info("Receiving a change status event ${payload}")
         val json = objectMapper.writeValueAsString(payload)
         rabbitTemplate.convertAndSend(exchange, statusChangedRoutingKey, json)
     }

@@ -58,7 +58,7 @@ class CreateRequestService(
             }
         })
 
-        log.info("A POLICY FOI CRIADA E EU PUBLIQUEI O EVENTO DE CRIAÇÃO")
+        log.info(" a create policy request was saved $savedRequest")
         return CreatedRequest(savedRequest.id,now)
     }
 

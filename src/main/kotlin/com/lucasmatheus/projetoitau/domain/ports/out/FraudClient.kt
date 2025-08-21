@@ -23,9 +23,7 @@ data class FraudResult(
     )
 }
 enum class Classification {
-    HIGH_RISK,
-    MEDIUM_RISK,
-    LOW_RISK,
+    REGULAR, HIGH_RISK, PREFERRED,
     @JsonEnumDefaultValue
-    UNKNOW
+    UNKNOWN
 }

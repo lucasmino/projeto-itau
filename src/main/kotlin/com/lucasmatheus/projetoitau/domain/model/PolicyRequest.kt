@@ -18,7 +18,9 @@ data class PolicyRequest(
     val createdAt: Instant,
     val finishedAt: Instant?,
     val history: List<HistoryEntry>,
-    val salesChannel: SalesChannel
+    val salesChannel: SalesChannel,
+    val paymentConfirmedAt: Instant? = null,
+    val subscriptionAuthorizedAt: Instant? = null,
 )
 
 data class HistoryEntry(

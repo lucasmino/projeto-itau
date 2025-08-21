@@ -1,6 +1,7 @@
 package com.lucasmatheus.projetoitau.unit.application
 
 
+import com.lucasmatheus.projetoitau.adapters.events.RabbitPolicyRequestEventPublisher
 import com.lucasmatheus.projetoitau.application.ValidateRequestService
 import com.lucasmatheus.projetoitau.domain.model.*
 import com.lucasmatheus.projetoitau.domain.ports.out.*
@@ -17,7 +18,7 @@ class ValidateRequestServiceTest {
     private val repo = mock<PolicyRequestRepository>()
     private val fraud = mock<FraudClient>()
     private val clock = mock<ClockProvider>()
-    private val publisher = mock<PolicyRequestEventPublisher>()
+    private val publisher = mock<RabbitPolicyRequestEventPublisher>()
     private val svc = ValidateRequestService(clock, fraud,repo, publisher )
 
     @Test

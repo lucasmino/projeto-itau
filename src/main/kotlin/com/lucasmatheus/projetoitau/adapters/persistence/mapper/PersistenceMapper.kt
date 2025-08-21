@@ -17,7 +17,9 @@ object PersistenceMapper {
             insuredAmount = d.insuredAmount,
             status = d.status,
             createdAt = d.createdAt,
-            finishedAt = d.finishedAt
+            finishedAt = d.finishedAt,
+            paymentConfirmedAt = d.paymentConfirmedAt,
+            subscriptionAuthorizedAt = d.subscriptionAuthorizedAt
         ).also { e ->
             e.coverages = d.coverages.toMutableMap()
             e.assistances = d.assistances.toMutableList()
@@ -39,6 +41,8 @@ object PersistenceMapper {
             status = e.status,
             createdAt = e.createdAt,
             finishedAt = e.finishedAt,
+            paymentConfirmedAt = e.paymentConfirmedAt,
+            subscriptionAuthorizedAt = e.subscriptionAuthorizedAt,
             coverages = e.coverages.toMap(),
             assistances = e.assistances.toList(),
             history = e.history.map { HistoryEntry(it.status, it.timestamp) }

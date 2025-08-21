@@ -8,6 +8,7 @@ import com.lucasmatheus.projetoitau.adapters.web.mapper.toCommand
 import com.lucasmatheus.projetoitau.adapters.web.mapper.toResponse
 import com.lucasmatheus.projetoitau.adapters.web.mapper.toSummary
 import com.lucasmatheus.projetoitau.application.ValidateRequestService
+import com.lucasmatheus.projetoitau.domain.ports.`in`.CancelRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.`in`.CreateRequestUseCase
 import com.lucasmatheus.projetoitau.domain.ports.`in`.GetRequestQuery
 import jakarta.validation.Valid
@@ -21,7 +22,8 @@ import java.util.*
 class RequestController(
     private val createUseCase: CreateRequestUseCase,
     private val repo: GetRequestQuery,
-    private val validateRequest: ValidateRequestService
+    private val validateRequest: ValidateRequestService,
+    private val cancelRequestService: CancelRequestUseCase
 ) {
 
     @PostMapping("/policy")
@@ -49,6 +51,19 @@ class RequestController(
         val res = validateRequest.validate(id)
         val status = if (res.changed) HttpStatus.ACCEPTED else HttpStatus.OK
         return ResponseEntity.status(status).body(res.toResponse())
+    }
+
+
+    @PostMapping("/{id}/cancel")
+    open fun cancelById(@PathVariable id: UUID): ResponseEntity<RequestSummary> {
+        val updated = cancelRequestService.cancelById(id)           // lança exceções para cenários inválidos
+        return ResponseEntity.ok(updated.toSummary())
+    }
+
+    @PostMapping("/{id}/cancel-by-customer")
+    open fun cancelByCustomer(@PathVariable id: UUID): ResponseEntity<RequestSummary> {
+        val updated = cancelRequestService.cancelByCustomer(id)     // idem
+        return ResponseEntity.ok(updated.toSummary())
     }
 
 }

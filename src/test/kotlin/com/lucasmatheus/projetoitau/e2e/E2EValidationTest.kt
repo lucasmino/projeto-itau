@@ -75,7 +75,6 @@ class E2EValidationTest {
 
     private fun baseUrl(path: String) = "http://localhost:$port$path"
 
-    // ========================= infra comum =========================
     companion object {
         @Container
         @JvmStatic
@@ -116,7 +115,7 @@ class E2EValidationTest {
         }
     }
 
-    // ===== helpers de debug e dados =====
+    // ===== helpers =====
     private fun uuid() = UUID.randomUUID().toString()
     private fun nowIso() = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString()
 
@@ -132,7 +131,7 @@ class E2EValidationTest {
         println("=== END WIREMOCK EVENTS ($title) ===")
     }
 
-    // Stubs padrão (LOW_RISK) válidos para o contrato real
+    // Stubs padrão agora retornam REGULAR (no lugar de LOW_RISK)
     @BeforeEach
     fun setupDefaultStubs() {
         val wm = wiremockEnsureStarted()
@@ -154,7 +153,7 @@ class E2EValidationTest {
                             {
                               "orderId": "$orderId",
                               "customerId": "$customerId",
-                              "classification": "LOW_RISK",
+                              "classification": "REGULAR",
                               "occurrences": [],
                               "analyzedAt": "$analyzedAt"
                             }
@@ -174,7 +173,7 @@ class E2EValidationTest {
                             {
                               "orderId": "$orderId",
                               "customerId": "$customerId",
-                              "classification": "LOW_RISK",
+                              "classification": "REGULAR",
                               "occurrences": [],
                               "analyzedAt": "$analyzedAt"
                             }
@@ -190,21 +189,18 @@ class E2EValidationTest {
         runCatching { postgres.stop() }
     }
 
-    // ============================ TESTE =============================
     @Test
     @DisplayName("HIGH_RISK -> REJECTED (integra Postgres + WireMock)")
     fun end_to_end_high_risk_flow() {
         val wm = wiremockEnsureStarted()
         WireMock.configureFor("localhost", wm.port())
 
-        // Para evitar conflito com stubs default, zera tudo e define só HIGH_RISK
         wm.resetAll()
 
         val orderId = uuid()
         val customerId = uuid()
         val analyzedAt = nowIso()
 
-        // Stubs definitivos para ESTE teste
         wm.stubFor(
             post(urlPathEqualTo("/fraud/check"))
                 .willReturn(
@@ -225,7 +221,7 @@ class E2EValidationTest {
                 )
         )
         wm.stubFor(
-            get(urlPathEqualTo("/fraud/check")) // só para probe de debug
+            get(urlPathEqualTo("/fraud/check")) // apenas probe
                 .willReturn(
                     aResponse()
                         .withStatus(200)
@@ -244,7 +240,6 @@ class E2EValidationTest {
                 )
         )
 
-        // === PROBE DE DEBUG: chama o mock diretamente (GET) e imprime o body ===
         val fraudProbeUrl = "http://localhost:${wm.port()}/fraud/check"
         val probe = rest.getForEntity(fraudProbeUrl, String::class.java)
         println("PROBE -> GET $fraudProbeUrl => ${probe.statusCode}")
@@ -270,13 +265,11 @@ class E2EValidationTest {
         val id = created.body!!.id
         println("Created requestId=$id")
 
-        // 2) consulta inicial
         val got1 = rest.getForEntity(baseUrl("/requests/$id"), SummaryResp::class.java)
         Assertions.assertEquals(HttpStatus.OK, got1.statusCode)
         println("Initial status=${got1.body!!.status}")
         Assertions.assertEquals("RECEIVED", got1.body!!.status)
 
-        // 3) valida -> REJECTED
         val validateResp = rest.postForEntity(baseUrl("/requests/$id/validate"), null, ValidateOut::class.java)
         println("Validate HTTP=${validateResp.statusCode} body=${validateResp.body}")
         val v = validateResp.body!!
@@ -287,17 +280,13 @@ class E2EValidationTest {
         Assertions.assertEquals("REJECTED", v.newStatus)
         Assertions.assertTrue(v.changed)
 
-        // 4) consulta final
         val got2 = rest.getForEntity(baseUrl("/requests/$id"), SummaryResp::class.java)
         println("Final status=${got2.body!!.status} finishedAt=${got2.body!!.finishedAt}")
         Assertions.assertEquals(HttpStatus.OK, got2.statusCode)
         Assertions.assertEquals("REJECTED", got2.body!!.status)
         Assertions.assertNotNull(got2.body!!.finishedAt)
 
-        // ==== DEBUG: imprime tudo o que o WireMock serviu (request/response) ====
-        dumpWiremockEvents(wm, title = "Após validação HIGH_RISK")
 
-        // valida que houve chamada ao serviço de fraude por POST
-//        wm.verify(1, postRequestedFor(urlPathEqualTo("/fraud/check")))
+        dumpWiremockEvents(wm, title = "Após validação HIGH_RISK")
     }
 }

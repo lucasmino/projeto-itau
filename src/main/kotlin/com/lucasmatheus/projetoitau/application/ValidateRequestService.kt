@@ -11,22 +11,25 @@ import com.lucasmatheus.projetoitau.domain.ports.out.*
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class ValidateRequestService(
     private val clockConfig: ClockProvider,
     private val fraudClient: FraudClient,
     private val policyRequestRepository: PolicyRequestRepository,
-    private val eventPublisher: PolicyRequestEventPublisher
-
+    private val eventPublisher: RabbitPolicyRequestEventPublisher
 ) : ValidateRequestUseCase {
+
     private val log = LoggerFactory.getLogger(javaClass)
+
     @Transactional
     override fun validate(id: UUID): ValidationResult {
         log.info("▶️ Iniciando validação da PolicyRequest id={} (customerId será carregado do banco)", id)
+
         val req = policyRequestRepository.findById(id) ?: error("PolicyRequest $id not found")
 
+        // Se já está num estado final, nada a fazer
         if (req.status.isFinal()) {
             return ValidationResult(
                 id = req.id,
@@ -36,13 +39,12 @@ class ValidateRequestService(
             )
         }
 
+        val result = fraudClient.check(req.id, req.customerId)
+        log.info("🔎 Resposta da Fraud API para {}: {}", req.id, result)
 
-        val resul = fraudClient.check(req.id, req.customerId)
-        log.info("AQUI ESTA O RETORNO DO OBJETO CHAMADO POR FRAUDEE {}: {}", req.id, resul)
-
-        val newStatus = when (resul.classification) {
+        val newStatus = when (result.classification) {
             Classification.HIGH_RISK -> Status.REJECTED
-            Classification.LOW_RISK, Classification.MEDIUM_RISK, Classification.UNKNOW -> Status.APPROVED
+            Classification.PREFERRED, Classification.REGULAR, Classification.UNKNOWN -> Status.PENDING
         }
 
         if (newStatus == req.status) {
@@ -53,15 +55,18 @@ class ValidateRequestService(
                 changed = false
             )
         }
+
         val now = clockConfig.now()
 
         val updated: PolicyRequest = req.copy(
             status = newStatus,
-            finishedAt = now,
-            history = req.history + HistoryEntry(newStatus, clockConfig.now())
+            finishedAt = if (newStatus.isFinal()) now else null, // só finaliza se status final
+            history = req.history + HistoryEntry(newStatus, now)
         )
-        log.info("AQUI ESTA O OBJETO POLICY REQUEST ATUALIZADO: {}", updated)
+
+        log.info("💾 Atualizando PolicyRequest: {}", updated)
         policyRequestRepository.save(updated)
+
 
         eventPublisher.publishStatusChanged(
             requestId = updated.id,
@@ -69,13 +74,13 @@ class ValidateRequestService(
             newStatus = newStatus.name,
             changedAt = now
         )
-            log.info("AQUI ESTA O EVENTO DE STATUS CHANGED PUBLICADO: {}", updated.id)
+        log.info("📣 Evento STATUS_CHANGED publicado para {}", updated.id)
 
         return ValidationResult(
             id = req.id,
-            req.status,
-            newStatus,
-            true
+            previousStatus = req.status,
+            newStatus = newStatus,
+            changed = true
         )
     }
 }

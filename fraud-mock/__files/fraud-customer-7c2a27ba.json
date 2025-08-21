@@ -2,7 +2,7 @@
   "orderId": "e053467f-bd48-4fd2-9481-75bd4e88ee40",
   "customerId": "7c2a27ba-71ef-4dd8-a3cf-5e094316ffd8",
   "analyzedAt": "2024-05-10T12:00:00Z",
-  "classification": "HIGH_RISK",
+  "classification": "REGULAR",
   "occurrences": [
     {
       "id": "e053467f-bd48-4fd2-9481-75bd4e88ee40",

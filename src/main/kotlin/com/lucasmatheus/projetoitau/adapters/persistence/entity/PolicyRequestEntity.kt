@@ -23,7 +23,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "policy_request")
-class PolicyRequestEntity(
+open class PolicyRequestEntity(
     @Id
     var id: UUID,
 
@@ -58,9 +58,17 @@ class PolicyRequestEntity(
     @Column(nullable = false)
     var createdAt: Instant,
 
+    @Column(name = "finished_at")
     var finishedAt: Instant? = null,
+
+    // novos campos para o fluxo de aprovação
+    @Column(name = "payment_confirmed_at")
+    var paymentConfirmedAt: Instant? = null,
+
+    @Column(name = "subscription_authorized_at")
+    var subscriptionAuthorizedAt: Instant? = null,
 ) {
-    // Otimistic locking para eventos assíncronos concorrentes
+    // Optimistic locking para eventos assíncronos concorrentes
     @Version
     var version: Long? = null
 
